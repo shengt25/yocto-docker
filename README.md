@@ -17,15 +17,13 @@ This repository provides a Dockerized development environment consisting of two 
 1. Yocto Development Environment based on Ubuntu 22.04 with necessary dependencies pre-installed
 2. NFS Server providing root filesystem for the target device over network
 
-**Note that we are using NFSv4**, while the labs uses NFSv3. When configuring the NFS mount on the target device, simply change `nfsvers=3` to `nfsvers=4`.
-
 The containers use three Docker volumes for data persistence:
 
 - `yocto-data` - Stores Yocto lab data and build artifacts
 - `yocto-nfs` - Stores NFS server root filesystem data
 - `yocto-user` - Stores user configuration in the Yocto container
 
-### Usage Options
+### Setup
 
 Two options are available:
 1. **Local Setup**: Run both Yocto and NFS containers on the same machine
@@ -57,7 +55,12 @@ cd Learn-Yocto-Project
 This will build and start both Yocto and NFS containers. After that, the Yocto container will be activated in your terminal.
 The container will be automatically shutdown when you exit the terminal.
 
+Inside the container, you will be logged in as user `yocto` (password: `yocto`).
+
 The `/nfs` directory is already mounted inside the Yocto container, so don't worry about the NFS setup in labs. Follow the rest of the tutorial to build images.
+
+**Important Note for Labs:**
+We are using NFSv4 while the labs uses NFSv3. When configuring the NFS mount on the target device, simply change `nfsvers=3` to `nfsvers=4`, when appending mount options in `extlinux/extlinux.conf.`
 
 #### Option 2: Remote Setup
 ```
@@ -85,6 +88,8 @@ cd Learn-Yocto-Project/remote-setup
 
 This will build and start Yocto container on the remote server. The container will be activated in your terminal. It will be automatically shutdown when you exit the terminal.
 
+Inside the container, you will be logged in as user `yocto` (password: `yocto`).
+
 **On Local Machine:**
 
 Clone the repository and start the NFS server:
@@ -94,6 +99,9 @@ cd Learn-Yocto-Project/remote-setup
 ./run_nfs.sh
 ```
 The NFS server container will run in the foreground, press `Ctrl+C` to stop it.
+
+**Important Note for Labs:**
+We are using NFSv4 while the labs uses NFSv3. When configuring the NFS mount on the target device, simply change `nfsvers=3` to `nfsvers=4`, when appending mount options in `extlinux/extlinux.conf.`
 
 **Pull the Image:**
 
