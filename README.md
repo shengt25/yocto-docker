@@ -8,7 +8,7 @@ The target hardware platform is BeagleBone Black.
 
 ### Requirements
 - Docker and Docker Compose installed
-- For Yocto builds: At least 50GB of free disk space
+- For Yocto builds: At least 100GB of free disk space
 - For scripts, they are supported on Linux or macOS. For Windows consider using WSL2, or you can run the containers manually using Docker commands.
   
 ### Overview
