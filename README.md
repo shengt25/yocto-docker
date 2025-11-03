@@ -55,6 +55,7 @@ cd Learn-Yocto-Project
 ```
 
 This will build and start both Yocto and NFS containers. After that, the Yocto container will be activated in your terminal.
+The container will be automatically shutdown when you exit the terminal.
 
 The `/nfs` directory is already mounted inside the Yocto container, so don't worry about the NFS setup in labs. Follow the rest of the tutorial to build images.
 
@@ -82,7 +83,7 @@ cd Learn-Yocto-Project/remote-setup
 ./run_yocto.sh
 ```
 
-Then you can build the Yocto images inside the container
+This will build and start Yocto container on the remote server. The container will be activated in your terminal. It will be automatically shutdown when you exit the terminal.
 
 **On Local Machine:**
 
@@ -92,6 +93,7 @@ git clone --recursive https://github.com/shengt25/Learn-Yocto-Project.git
 cd Learn-Yocto-Project/remote-setup
 ./run_nfs.sh
 ```
+The NFS server container will run in the foreground, press `Ctrl+C` to stop it.
 
 **Pull the Image:**
 
