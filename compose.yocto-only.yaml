@@ -1,0 +1,27 @@
+name: yocto-dev
+
+services:
+  yocto:
+    build:
+      context: ./docker-yocto
+      dockerfile: Dockerfile
+    image: yocto-dev:v1.0
+    pull_policy: never 
+    volumes:
+      - type: volume
+        source: yocto-data
+        target: /home/yocto/yocto-labs
+      - type: volume
+        source: yocto-user
+        target: /home/yocto/user
+      - type: volume
+        source: yocto-nfs
+        target: /nfs
+
+volumes:
+  yocto-data:
+    name: "yocto-data"
+  yocto-nfs:
+    name: "yocto-nfs"
+  yocto-user:
+    name: "yocto-user"
