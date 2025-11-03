@@ -1,0 +1,25 @@
+name: nfs-server
+
+services:
+  nfs:
+    build:
+      context: ../docker-nfs-server
+      dockerfile: Dockerfile
+    image: nfs-server:v1.0
+    pull_policy: never 
+    container_name: nfs-server
+    cap_add:
+      - SYS_ADMIN
+    ports:
+      - "2049:2049"
+    environment:
+      NFS_DISABLE_VERSION_3: "1"
+      NFS_EXPORT_0: "/nfs *(rw,sync,no_root_squash,subtree_check,fsid=0,insecure)"
+    volumes:
+      - yocto-nfs:/nfs
+      - /lib/modules:/lib/modules:ro
+    restart: unless-stopped
+
+volumes:
+  yocto-nfs:
+    name: "yocto-nfs"
