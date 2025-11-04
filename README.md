@@ -1,7 +1,15 @@
-# Learn Yocto Project
+# Yocto Containerized
 
-This is a learning project for Yocto Project and OpenEmbedded development training, following Bootlin's training materials: https://bootlin.com/training/yocto/. You can see the Slides and Practical Labs in this link.
-The target hardware platform is BeagleBone Black.
+A containerized environment for learning Yocto Project and OpenEmbedded development, based on Bootlin's training materials.
+
+## Why Use This?
+
+Building Yocto Project requires numerous files, dependencies, and a Linux environment. This project provides a ready-to-use containerized setup that:
+- Works out of the box
+- Keeps your host system clean
+- Follows Bootlin's training materials
+
+Currently supports macOS and Linux, with BeagleBone Black as the target hardware platform. Feel free to modify for your own hardware, or wait for future updates with more flexible configuration.
 
 
 ## Lab Environment Setup
