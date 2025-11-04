@@ -31,6 +31,22 @@ Two options are available:
 
 The details for each option are provided below.
 
+#### For Both Options
+
+These are some notes to keep in mind, for both options.
+
+**Yocto development container**
+
+- The container will be automatically shutdown when you exit the terminal of Yocto development container. All settings and data are preserved (container is stopped, not removed). To reset the container, run `rebuild_yocto.sh`.
+
+- Inside the container, you will be logged in as user `yocto` (password: `yocto`).
+- The `/nfs` directory is already mounted inside the Yocto container, so don't worry about the NFS setup in labs. Follow the rest of the tutorial to build images.
+
+**NFS server**
+
+- We are using NFSv4 while the labs uses NFSv3. When configuring the NFS mount on the target device, simply change `nfsvers=3` to `nfsvers=4`, when appending mount options in `extlinux/extlinux.conf.`
+- You might need to change your firewall settings to let the NFS server accept incoming connections (from beaglebone). See Firewall Settings.
+
 #### Option 1: Local Setup
 ```
 ┌───────────────────────────────────────────┐      ┌──────────────┐
@@ -53,15 +69,6 @@ cd Learn-Yocto-Project
 ```
 
 This will build and start both Yocto and NFS containers. After that, the Yocto container will be activated in your terminal.
-
-The container will be automatically shutdown when you exit the terminal. Container settings and data are also preserved (stopped, not removed). To reset the container, run `rebuild_yocto.sh`.
-
-Inside the container, you will be logged in as user `yocto` (password: `yocto`).
-
-The `/nfs` directory is already mounted inside the Yocto container, so don't worry about the NFS setup in labs. Follow the rest of the tutorial to build images.
-
-**Important Note for Labs:**
-We are using NFSv4 while the labs uses NFSv3. When configuring the NFS mount on the target device, simply change `nfsvers=3` to `nfsvers=4`, when appending mount options in `extlinux/extlinux.conf.`
 
 #### Option 2: Remote Setup
 ```
@@ -87,9 +94,7 @@ cd Learn-Yocto-Project/remote-setup
 ./run_yocto.sh
 ```
 
-This will build and start Yocto container on the remote server. The container will be activated in your terminal. It will be automatically shutdown when you exit the terminal. Container settings and data are also preserved (stopped, not removed). To reset the container, run `rebuild_yocto.sh`.
-
-Inside the container, you will be logged in as user `yocto` (password: `yocto`).
+This will build and start Yocto container on the remote server. The container will be activated in your terminal.
 
 **On Local Machine:**
 
@@ -100,9 +105,6 @@ cd Learn-Yocto-Project/remote-setup
 ./run_nfs.sh
 ```
 The NFS server container will run in the foreground, press `Ctrl+C` to stop it.
-
-**Important Note for Labs:**
-We are using NFSv4 while the labs uses NFSv3. When configuring the NFS mount on the target device, simply change `nfsvers=3` to `nfsvers=4`, when appending mount options in `extlinux/extlinux.conf.`
 
 **Pull the Image:**
 
