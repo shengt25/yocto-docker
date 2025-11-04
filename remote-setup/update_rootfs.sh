@@ -39,25 +39,34 @@ update_rootfs() {
     # Because of symlinks, the transferred filename will be different from IMAGE_FILENAME.
     docker exec "$LOCAL_CONTAINER" sh -c "rm -rf $TRANSFER_TMP_DIR && mkdir -p $TRANSFER_TMP_DIR"
 
-    local PART_DIR="${TRANSFER_TMP_DIR}.part"
-    docker exec "$LOCAL_CONTAINER" sh -c "rm -rf $PART_DIR && mkdir -p $PART_DIR"
+    # Cleanup function to remove temporary transfer directory
+    cleanup() {
+        local dir_exists
+        dir_exists=$(docker exec "$LOCAL_CONTAINER" sh -c "[ -d $TRANSFER_TMP_DIR ] && echo 1 || echo 0")
+        if [[ "$dir_exists" == "1" ]]; then
+            echo "Cleaning up temporary transfer directory..."
+            docker exec "$LOCAL_CONTAINER" rm -rf "$TRANSFER_TMP_DIR"
+        fi
+    }
+
+    # Set trap to cleanup on exit, interrupt (Ctrl+C), or termination
+    trap cleanup EXIT INT TERM
 
     local TRANSFER_START_TIME
     TRANSFER_START_TIME=$(date +%s)
 
-    # Transfer the file to .part directory first, follow the symlinks
+    # Transfer the file directly to transfer directory, follow the symlinks
     if ssh "$REMOTE_HOST" "docker cp -L $REMOTE_CONTAINER:$IMAGE_PATH -" | \
-        docker cp - "$LOCAL_CONTAINER:$PART_DIR/"; then
+        docker cp - "$LOCAL_CONTAINER:$TRANSFER_TMP_DIR/"; then
         echo "Transfer in progress..."
 
         # Get the actual transferred filename
         local TRANSFERRED_FILE
-        TRANSFERRED_FILE=$(docker exec "$LOCAL_CONTAINER" sh -c "ls $PART_DIR/*.tar.xz 2>/dev/null | head -1")
+        TRANSFERRED_FILE=$(docker exec "$LOCAL_CONTAINER" sh -c "ls $TRANSFER_TMP_DIR/*.tar.xz 2>/dev/null | head -1")
 
         # Check if file was found and is not empty
         if [[ -z "$TRANSFERRED_FILE" ]]; then
             echo "Error: No .tar.xz file found after transfer"
-            docker exec "$LOCAL_CONTAINER" rm -rf "$PART_DIR"
             exit 1
         fi
 
@@ -66,15 +75,8 @@ update_rootfs() {
 
         if [[ "$FILE_SIZE_BYTES" -eq 0 ]]; then
             echo "Error: Downloaded file is empty (0 bytes)"
-            docker exec "$LOCAL_CONTAINER" rm -rf "$PART_DIR"
             exit 1
         fi
-
-        # Move from .part to actual transfer directory on success
-        docker exec "$LOCAL_CONTAINER" sh -c "mv $PART_DIR/* $TRANSFER_TMP_DIR/ && rmdir $PART_DIR"
-
-        # Update the transferred file path
-        TRANSFERRED_FILE=$(docker exec "$LOCAL_CONTAINER" sh -c "ls $TRANSFER_TMP_DIR/*.tar.xz 2>/dev/null | head -1")
 
         local FILE_SIZE_MB=$((FILE_SIZE_BYTES / 1024 / 1024))
         local TRANSFER_END_TIME
@@ -84,7 +86,6 @@ update_rootfs() {
         echo "Transferred: ${FILE_SIZE_MB} MB in ${TRANSFER_DURATION}s"
     else
         echo "Error: Transfer failed"
-        docker exec "$LOCAL_CONTAINER" rm -rf "$PART_DIR"
         exit 1
     fi
 
@@ -95,7 +96,6 @@ update_rootfs() {
         read -p "Continue? (y/N): " -r
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             echo "Operation cancelled."
-            docker exec "$LOCAL_CONTAINER" rm -rf "$TRANSFER_TMP_DIR"
             exit 1
         fi
     fi
@@ -103,6 +103,9 @@ update_rootfs() {
     echo "Cleaning /nfs and extracting new rootfs..."
     docker exec "$LOCAL_CONTAINER" sh -c "rm -rf /nfs/* /nfs/.[!.]* 2>/dev/null || true"
     docker exec "$LOCAL_CONTAINER" tar -xJf "$TRANSFERRED_FILE" -C /nfs
+
+    # Cancel trap after successful extraction
+    trap - EXIT INT TERM
 
     echo "Cleaning up temporary files..."
     docker exec "$LOCAL_CONTAINER" rm -rf "$TRANSFER_TMP_DIR"
