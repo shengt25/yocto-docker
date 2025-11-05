@@ -71,7 +71,7 @@ These are some notes to keep in mind, for both options.
 **Usage:**
 Clone the repository and run the script:
 ```bash
-git clone --recursive https://github.com/shengt25/Learn-Yocto-Project.git
+git clone --recursive https://github.com/shengt25/yocto-docker.git
 cd Learn-Yocto-Project
 ./run.sh
 ```
@@ -97,7 +97,7 @@ This will build and start both Yocto and NFS containers. After that, the Yocto c
 
 Clone the repository and start the Yocto container:
 ```bash
-git clone --recursive https://github.com/shengt25/Learn-Yocto-Project.git
+git clone --recursive https://github.com/shengt25/yocto-docker.git
 cd Learn-Yocto-Project/remote-setup
 ./run_yocto.sh
 ```
@@ -108,7 +108,7 @@ This will build and start Yocto container on the remote server. The container wi
 
 Clone the repository and start the NFS server:
 ```bash
-git clone --recursive https://github.com/shengt25/Learn-Yocto-Project.git
+git clone --recursive https://github.com/shengt25/yocto-docker.git
 cd Learn-Yocto-Project/remote-setup
 ./run_nfs.sh
 ```
