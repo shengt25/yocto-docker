@@ -1,4 +1,4 @@
-name: yocto-dev
+name: yocto-docker
 
 services:
   yocto:

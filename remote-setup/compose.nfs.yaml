@@ -1,4 +1,4 @@
-name: nfs-server
+name: yocto-docker
 
 services:
   nfs:

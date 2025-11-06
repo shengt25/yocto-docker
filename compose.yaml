@@ -1,4 +1,4 @@
-name: yocto-dev-suite
+name: yocto-docker
 
 services:
   yocto:
@@ -22,7 +22,7 @@ services:
     build:
       context: ./docker-nfs-server
       dockerfile: Dockerfile
-    image: nfs-server:local
+    image: nfs-server:v1.0
     depends_on:
       yocto:
         condition: service_started
