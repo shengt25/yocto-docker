@@ -2,8 +2,8 @@
 set -e
 
 # Some config, normally don't need to change
-REMOTE_CONTAINER="yocto-dev-yocto-1"
-LOCAL_CONTAINER="nfs-server"
+REMOTE_CONTAINER="yocto-docker-yocto-1"
+LOCAL_CONTAINER="yocto-docker-nfs-1"
 DEFAULT_IMAGE_NAME_PREFIX="core-image-minimal"
 IMAGE_SUFFIX="-beaglebone.rootfs.tar.xz"
 IMAGE_BASE_DIR="/home/yocto/yocto-labs/build/tmp/deploy/images/beaglebone"
