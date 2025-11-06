@@ -176,9 +176,11 @@ sudo modprobe nfs
 sudo modprobe nfsd
 ```
 
-Run the first command again to check it is enabled.
-
 Add `nfs` and `nfsd` in  `/etc/modules-load.d/nfs.conf` to load automatically on boot.
+
+```bash
+echo -e "nfs\nnfsd" | sudo tee -a /etc/modules-load.d/nfs.conf
+```
 
 ## Acknowledgements
 
