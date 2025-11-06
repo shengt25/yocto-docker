@@ -23,6 +23,7 @@ services:
       context: ./docker-nfs-server
       dockerfile: Dockerfile
     image: nfs-server:v1.0
+    pull_policy: never
     depends_on:
       yocto:
         condition: service_started
