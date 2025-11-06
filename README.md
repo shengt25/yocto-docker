@@ -1,64 +1,119 @@
 # Yocto Docker Development Environment
 
-Building Yocto Project requires numerous files, dependencies, and a Linux environment. This project provides a ready-to-use containerized setup that works out of the box and keeps your host system clean:
-- A Yocto container for building 
-- A NFS server container to serve the target root filesystem. 
+A containerized Yocto build environment with NFS rootfs serving capability.
 
-What's more. These two containers can be setup on two hosts, which means a split workflow that you can: 
-- build on a powerful remote machine
-- serving the NFS rootfs on your computer locally. 
+## Key Features
 
-The default target is Beaglebone Black, so you can use it to follow Bootlin’s Yocto training materials, but the environment is generic and not limited to that use case.
+- **Clean build environment**: Pre-configured Ubuntu 22.04 container with all Yocto dependencies
+- **NFS rootfs serving**: Dedicated container to serve target board's root filesystem
+- **Split workflow support**: Able to build on remote server, serve NFS locally
+- **Persistent storage**: Docker volumes preserve builds and configurations
+
+Default target: BeagleBone Black (suitable for Bootlin's Yocto training)
 
 Currently the scripts are only for Linux and macOS. On windows you can use `docker compose` command manually for now.
 
-It has persistent volumes for builds, NFS data, and user data. Don't worry about resetting the containers.
-
 ## Requirements
-- Docker and Docker Compose installed
-- At least 100GB of free disk space for Yocto building. 
-- `nfs` and `nfsd` module enabled, see below.
 
-`nfs` and `nfsd` module are needed for the nfs server container. On your host machine check with:
+- Docker and Docker compose installed
+- 100GB+ free disk space (for building Yocto)
+- NFS kernel modules enabled (Linux)
+
+## Quick Start
+
+Choose setup based on your needs:
+
+### Local setup (most common)
+
+Both Yocto and NFS containers run on the same machine.
 
 ```bash
-lsmod | grep nfs
+git clone --recursive https://github.com/shengt25/yocto-docker.git
+cd yocto-docker
+./run.sh
 ```
 
-If you couldn't find `nfs` and `nfsd`, enable them using:
+### Remote setup
+
+Build on powerful server, serve NFS locally. 
+
+**Remote server:**
 
 ```bash
-sudo modprobe nfs 
-sudo modprobe nfsd
+git clone --recursive https://github.com/shengt25/yocto-docker.git
+cd yocto-docker/remote-setup
+./run_yocto.sh
 ```
 
-Run the first command again to check it is enabled.
+**Local machine:**
 
+```bash
+git clone --recursive https://github.com/shengt25/yocto-docker.git
+cd yocto-docker/remote-setup
+./run_nfs.sh
+```
 
-## Components
+Continue to [Remote Deployment](#remote-deployment), for deployment workflow
 
-The Docker Compose will build and run:
+## Usage
 
-Two containers:
+After running the setup script, the Yocto container will be built/started and activated in your terminal, ready to use!
+
+**Notes**
+
+- Yocto container's possword: `yocto`
+- Container stops when you exit (not removed), data persists.
+- NFS version: NFSv4 (set `nfsvers=4` in target's `extlinux.conf`)
+- Firewall: Open port `2049` for NFS connections from target board
+
+## Remote Deployment 
+
+After both server and machine setup, the deployment can be easilty done with scripts:
+
+#### Update rootfs to local NFS (for quick testing)
+
+```bash
+./update_rootfs.sh user@remote-ip
+```
+
+It will connect to the remote server, fetch the rootfs image and overwrite the data in local nfs server container. Done automatically and clean, no cache/temp files left.
+
+#### Pull disk image (For flashing SD cards)
+
+```bash
+./pull_image.sh user@remote-ip
+```
+
+This will pull the image (`wic.xz` format) to the current directory. You can use it to flash SD cards.
+
+#### Options:
+
+**For both scripts**
+
+- `-i <image prefix>`: Image name prefix (default: `core-image-minimal`)
+- `-y`: Skip confirmation
+- `-h`: Show help
+
+## Architecture
+
+### Components
+
+**Containers:**
 
 1. Yocto Development Environment based on Ubuntu 22.04 with necessary dependencies pre-installed
 2. NFS Server providing root filesystem for the target device over network
 
-Three Docker volumes for data persistence:
+(For local setup they are on the same machine. For remote setup, on two machines.)
 
-- `yocto-data` - Stores Yocto lab data and build artifacts
-- `yocto-nfs` - Stores NFS server root filesystem data
-- `yocto-user` - Stores user configuration in the Yocto container
+**Docker Volumes:**
 
-## Setup
+- `yocto-data` - Yocto lab data and build artifacts
+- `yocto-nfs` - NFS server root filesystem data
+- `yocto-user` - User data in the Yocto container
 
+### Diagram
 
-Two options are available:
-1. **Local Setup**: Run both Yocto and NFS containers on the same machine
-2. **Remote Setup**: Run Yocto container on a powerful remote server and NFS container runs locally.
-
-
-### Option 1: Local Setup
+**Local Setup**
 
 ```
 ┌───────────────────────────────────────────┐      ┌──────────────┐
@@ -70,20 +125,9 @@ Two options are available:
 │                                           │      │              │
 │                                           │      │              │
 └───────────────────────────────────────────┘      └──────────────┘
-
-```
-Clone the repository and run the script:
-```bash
-git clone --recursive https://github.com/shengt25/yocto-docker.git
-cd yocto-docker
-./run.sh
 ```
 
-This will build and start both Yocto and NFS containers. After that, the Yocto container will be activated in your terminal.
-
-The container will be stopped when you exit the Yocto container terminal. All settings and data are preserved (container is stopped, not removed).
-
-### Option 2: Remote Setup
+**Remote Setup**
 
 ```
 ┌─────────────────────┐                   ┌──────────────────┐      ┌──────────────┐
@@ -99,65 +143,43 @@ The container will be stopped when you exit the Yocto container terminal. All se
 └─────────────────────┘                   └──────────────────┘      └──────────────┘
 ```
 
-**On Remote Server:**
+## Maintenance
 
-Clone the repository and start the Yocto container:
-```bash
-git clone --recursive https://github.com/shengt25/yocto-docker.git
-cd yocto-docker/remote-setup
-./run_yocto.sh
+**Reset container** (preserve all volumes data but lost settings)
+
+ ```bash
+ ./rebuild_yocto.sh
+ ```
+
+**Delete all data** (remove volumes):
+
+```bash 
+docker volume rm yocto-data yocto-nfs yocto-user 
 ```
 
-This will build and start Yocto container on the remote server. The container will be activated in your terminal.
+Scripts will be added soon.
 
-The nfs serving directory is mounted at `/nfs` in Yocto container.
+## Troubleshooting
 
-The container will be stopped when you exit the Yocto container terminal. All settings and data are preserved (container is stopped, not removed).
+**NFS server fails to start on Linux:**
 
-**On Local Machine:**
-
-Clone the repository and start the NFS server:
-```bash
-git clone --recursive https://github.com/shengt25/yocto-docker.git
-cd yocto-docker/remote-setup
-./run_nfs.sh
-```
-The NFS server container will run in the foreground, press `Ctrl+C` to stop it.
-
-**Pull the Image:**
-
-If you want to pull built images (`wic.xz` format) to your local machine, which can be flashed to an SD card, run:
+On Linux, the container requires `nfs` and `nfsd` kernel modules. The NFS server will fail with it. You check on your computer using:
 
 ```bash
-./pull_image.sh <remote-user>@<remote-ip>
-```
-Options:  
-```
-Use `-i` to specify image name prefix. Full image name will be <prefix>-beaglebone.rootfs.tar.xz (default prefix: core-image-minimal).   
-Use `-y` to Skip confirmation prompt.  
-Use `-h` flag for help.
+lsmod | grep nfs
 ```
 
-**Update Root Filesystem:**
+If you couldn't find `nfs` and `nfsd`, enable them using:
 
-If you want to directly update the root filesystem served by the local NFS server, run:
 ```bash
-./update_rootfs.sh <remote-user>@<remote-ip>
-```
-This will fetch the latest root filesystem from the remote server's container and update it to the local NFS container.
-
-Options:  
-```
-Use `-i` to specify image name prefix. Full image name will be <prefix>-beaglebone.rootfs.wic.xz (default prefix: core-image-minimal).   
-Use `-y` to Skip confirmation prompt.  
-Use `-h` flag for help.
+sudo modprobe nfs 
+sudo modprobe nfsd
 ```
 
-## Notes
-- The user and password for Yocto container is `yocto` and `yocto`.
-- The nfs container servers NFSv4. On the target board, make sure it is `nfsvers=4`, not `nfsvers=3`, in the `extlinux/extlinux.conf.`
-- You might need to change your firewall settings to open port `2049` for `nfsd`, letting the NFS server accept incoming connections from the target board.
-- To reset the container, run `rebuild_yocto.sh`. However, the volumns are always preserved unless you delete them exciplity via `docker volume rm yocto-data yocto-nfs yocto-user`.
+Run the first command again to check it is enabled.
+
+Add `nfs` and `nfsd` in  `/etc/modules-load.d/nfs.conf` to load automatically on boot.
+
 ## Acknowledgements
 
 The NFS server container is based on [obeone/docker-nfs-server](https://github.com/obeone/docker-nfs-server), which is forked and improved upon [ehough/docker-nfs-server](https://github.com/ehough/docker-nfs-server)
