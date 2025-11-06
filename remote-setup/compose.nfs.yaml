@@ -7,7 +7,6 @@ services:
       dockerfile: Dockerfile
     image: nfs-server:v1.0
     pull_policy: never 
-    container_name: nfs-server
     privileged: true
     ports:
       - "2049:2049"
